@@ -353,7 +353,10 @@ def load_css():
 components.html('''
 <script>
 const key = "stSidebarCollapsed-" + window.location.host;
-localStorage.setItem(key, "false");
+// Set after a short delay to ensure it overrides any initial setting
+setTimeout(() => {
+  localStorage.setItem(key, "false");
+}, 100);
 // Override setItem to prevent saving collapsed state
 const originalSetItem = localStorage.setItem;
 localStorage.setItem = function(k, v) {

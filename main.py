@@ -349,8 +349,19 @@ def load_css():
     </style>
     """, unsafe_allow_html=True)
 
-# Ensure sidebar remains expanded by setting localStorage value to false on refresh
-components.html('<script>localStorage.setItem("stSidebarCollapsed-", "false");</script>', height=0)
+# Prevent sidebar collapse state from being saved to localStorage
+components.html('''
+<script>
+const key = "stSidebarCollapsed-" + window.location.host;
+localStorage.setItem(key, "false");
+// Override setItem to prevent saving collapsed state
+const originalSetItem = localStorage.setItem;
+localStorage.setItem = function(k, v) {
+  if (k === key && v === "true") return; // Prevent saving collapsed state
+  return originalSetItem.apply(this, arguments);
+};
+</script>
+''', height=0)
 
 def load_clean_data():
     output_dir = os.path.join(os.path.dirname(__file__), "outputs")
@@ -414,7 +425,7 @@ def render_sidebar(df):
         </div>
         """, unsafe_allow_html=True)
         st.markdown('<div class="nav-label" style="padding:0.75rem 1rem 0.25rem;">Navigate</div>', unsafe_allow_html=True)
-        page = st.radio("", ["✦  Greenlight Predictor","◈  Data Observatory","⊞  Model Laboratory","◉  Project Brief"], label_visibility="collapsed")
+        page = st.radio("", ["Greenlight Predictor","Data Observatory","Model Laboratory","Project Brief"], label_visibility="collapsed")
         if df is not None:
             st.markdown(f"""
             <div class="sidebar-stats">
@@ -864,10 +875,10 @@ def main():
     page = render_sidebar(df)
     if df is None or df.empty:
         show_setup(); return
-    if   page == "✦  Greenlight Predictor": page_predictor(df)
-    elif page == "◈  Data Observatory":      page_exploration(df)
-    elif page == "⊞  Model Laboratory":      page_model_insights(df)
-    elif page == "◉  Project Brief":         page_about(df)
+    if   page == "Greenlight Predictor": page_predictor(df)
+    elif page == "Data Observatory":      page_exploration(df)
+    elif page == "Model Laboratory":      page_model_insights(df)
+    elif page == "Project Brief":         page_about(df)
     st.markdown("""
     <div style="border-top:1px solid rgba(255,255,255,0.05);margin-top:4rem;padding-top:1.5rem;display:flex;justify-content:space-between;align-items:center;">
         <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:#64748b;letter-spacing:0.1em;">✦ STAR POWER INDEX · v1.0 · DATA 200</div>
